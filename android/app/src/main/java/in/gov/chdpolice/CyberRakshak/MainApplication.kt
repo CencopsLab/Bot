@@ -1,4 +1,4 @@
-package `in`.gov.chdpolice.cybersaathi
+package `in`.gov.chdpolice.CyberRakshak
 
 import android.app.Application
 import android.content.res.Configuration

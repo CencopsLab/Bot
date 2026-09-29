@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: CyberRakshak-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: CORS_ORIGIN
+        value: "*"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-20b
+      - key: GROQ_MAX_TOKENS
+        value: 768
+      - key: GROQ_TEMPERATURE
+        value: 0.2

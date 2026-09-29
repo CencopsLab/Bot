@@ -1,0 +1,34 @@
+{
+	"cli": {
+		"version": ">= 10.0.0"
+	},
+	"build": {
+		"development": {
+			"env": {
+				"API_BASE_URL": "https://backend-zuyl.onrender.com"
+			},
+			"distribution": "internal",
+			"android": {
+				"buildType": "apk"
+			}
+		},
+		"preview": {
+			"env": {
+				"API_BASE_URL": "https://backend-zuyl.onrender.com"
+			},
+			"distribution": "internal",
+			"android": {
+				"buildType": "apk"
+			}
+		},
+		"production": {
+			"env": {
+				"API_BASE_URL": "https://backend-zuyl.onrender.com"
+			},
+			"autoIncrement": true,
+			"android": {
+				"buildType": "app-bundle"
+			}
+		}
+	}
+}

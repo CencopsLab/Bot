@@ -109,9 +109,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'in.gov.chdpolice.cybersaathi'
+    namespace 'in.gov.chdpolice.CyberRakshak'
     defaultConfig {
-        applicationId 'in.gov.chdpolice.cybersaathi'
+        applicationId 'in.gov.chdpolice.CyberRakshak'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

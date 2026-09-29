@@ -1,16 +1,19 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, useColorScheme } from 'react-native';
+import { View, Text, Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { getTheme } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import PullToRefreshScrollView from '@/components/PullToRefreshScrollView';
 import { SERVICE_LINKS } from '@/data/services';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function ServicesScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const theme = getTheme(scheme);
+  const { t } = useLanguage();
   const navigation = useNavigation();
 
   const openService = async (url: string) => {
@@ -23,16 +26,16 @@ export default function ServicesScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <PullToRefreshScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.goBack()} accessibilityLabel="Go back" style={{ marginRight: 12 }}>
+          <Pressable onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} style={{ marginRight: 12 }}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </Pressable>
-            <Text style={[typography.h2, { color: theme.text }]}>Integrated services</Text>
+            <Text style={[typography.h2, { color: theme.text }]}>{t('services.title')}</Text>
           </View>
           <View style={[styles.notice, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-            <Text style={[typography.caption, { color: theme.textMuted }]}>These links open official external services.</Text>
-            <Text style={[typography.caption, { color: theme.textMuted, marginTop: 2 }]}>CyberSaathi does not submit a report on your behalf.</Text>
+            <Text style={[typography.caption, { color: theme.textMuted }]}>{t('services.noticeOne')}</Text>
+            <Text style={[typography.caption, { color: theme.textMuted, marginTop: 2 }]}>{t('services.noticeTwo')}</Text>
           </View>
 
         {SERVICE_LINKS.map((service) => (
@@ -41,23 +44,23 @@ export default function ServicesScreen() {
               <Ionicons name={service.icon as any} size={22} color={theme.primary} />
             </View>
             <View style={styles.cardCopy}>
-              <Text style={[typography.bodyBold, { color: theme.text }]}>{service.title}</Text>
+              <Text style={[typography.bodyBold, { color: theme.text }]}>{t(`service.${service.id}.title`)}</Text>
               <Text style={[typography.caption, { color: theme.textMuted, marginTop: 5 }]}> 
-                {service.description}
+                {t(`service.${service.id}.description`)}
               </Text>
             </View>
             <Pressable
               onPress={() => openService(service.url)}
               accessibilityRole="button"
-              accessibilityLabel={`Open ${service.title}`}
+              accessibilityLabel={`${t('common.open')}: ${t(`service.${service.id}.title`)}`}
               style={[styles.openButton, { backgroundColor: theme.primary + '12' }]}
             >
-              <Text style={{ color: theme.primary, fontWeight: '700' }}>Open official portal</Text>
+              <Text style={{ color: theme.primary, fontWeight: '700' }}>{t('common.openOfficial')}</Text>
               <Ionicons name="arrow-up-outline" size={16} color={theme.primary} style={{ transform: [{ rotate: '45deg' }] }} />
             </Pressable>
           </View>
         ))}
-      </ScrollView>
+      </PullToRefreshScrollView>
     </SafeAreaView>
   );
 }

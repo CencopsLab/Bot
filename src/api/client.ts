@@ -4,7 +4,7 @@ import { API_BASE_URL } from '@/config/env';
 // Single, centralized HTTP client. Swap base URL / headers / auth here only.
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 10 * 60 * 1000,
 });
 
 // Placeholder for future API-key / bearer-token auth.
@@ -37,6 +37,9 @@ export function toApiError(error: unknown): ApiError {
     }
     if (!err.response) {
       return new ApiError('No internet connection or the server is unreachable.', { isNetwork: true });
+    }
+    if (err.response.status === 413) {
+      return new ApiError('File is larger than the 150 MB upload limit.', { status: 413 });
     }
     return new ApiError(`Server error (${err.response.status}). Please try again.`, {
       status: err.response.status,

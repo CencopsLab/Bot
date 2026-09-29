@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, useColorScheme, Alert } from 'react-native';
+import { View, Text, Pressable, StyleSheet, useColorScheme, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import * as FileSystem from 'expo-file-system';
@@ -8,8 +8,10 @@ import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { getTheme } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import PullToRefreshScrollView from '@/components/PullToRefreshScrollView';
 import { HANDBOOKS } from '@/data/handbooks';
 import type { MoreStackParamList } from '@/navigation/types';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Route = RouteProp<MoreStackParamList, 'HandbookDetail'>;
 
@@ -18,6 +20,7 @@ export default function HandbookDetailScreen() {
   const theme = getTheme(scheme);
   const navigation = useNavigation();
   const route = useRoute<Route>();
+  const { t } = useLanguage();
 
   const handbook = HANDBOOKS.find((h) => h.id === route.params.id);
 
@@ -33,24 +36,24 @@ export default function HandbookDetailScreen() {
       const target = `${FileSystem.documentDirectory}${fileName}`;
       const result = await FileSystem.downloadAsync(handbook.pdfUrl, target);
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(result.uri, { mimeType: 'application/pdf', dialogTitle: 'Save handbook PDF' });
+        await Sharing.shareAsync(result.uri, { mimeType: 'application/pdf', dialogTitle: t('common.download') });
       } else {
-        Alert.alert('PDF downloaded', 'The handbook is available in the app documents folder.');
+        Alert.alert(t('alert.pdfDownloaded'), t('alert.pdfLocation'));
       }
     } catch {
-      Alert.alert('Download unavailable', 'Please check your connection and try again.');
+      Alert.alert(t('alert.downloadUnavailable'), t('alert.downloadRetry'));
     }
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <PullToRefreshScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.goBack()} accessibilityLabel="Go back" style={{ marginRight: 12 }}>
+          <Pressable onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} style={{ marginRight: 12 }}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </Pressable>
           <Text style={[typography.h2, { color: theme.text, flex: 1 }]} numberOfLines={2}>
-            {handbook?.title ?? 'Handbook'}
+            {handbook ? t(`handbook.${handbook.id}.title`) : t('handbooks.title')}
           </Text>
         </View>
 
@@ -60,20 +63,20 @@ export default function HandbookDetailScreen() {
               <View style={styles.actions}>
                 <Pressable onPress={viewPdf} style={[styles.actionButton, { backgroundColor: theme.primary }]}>
                   <Ionicons name="eye-outline" size={17} color="#fff" />
-                  <Text style={styles.actionText}>View PDF</Text>
+                  <Text style={styles.actionText}>{t('common.viewPdf')}</Text>
                 </Pressable>
                 <Pressable onPress={downloadPdf} style={[styles.actionButton, { backgroundColor: theme.primary + '12' }]}>
                   <Ionicons name="download-outline" size={17} color={theme.primary} />
-                  <Text style={[styles.actionText, { color: theme.primary }]}>Download</Text>
+                  <Text style={[styles.actionText, { color: theme.primary }]}>{t('common.download')}</Text>
                 </Pressable>
               </View>
             ) : null}
-            <Text style={[typography.body, { color: theme.text, lineHeight: 24 }]}>{handbook.content}</Text>
+            <Text style={[typography.body, { color: theme.text, lineHeight: 24 }]}>{t(`handbook.${handbook.id}.content`)}</Text>
           </View>
         ) : (
-          <Text style={{ color: theme.textMuted }}>This handbook could not be found.</Text>
+          <Text style={{ color: theme.textMuted }}>{t('handbooks.missing')}</Text>
         )}
-      </ScrollView>
+      </PullToRefreshScrollView>
     </SafeAreaView>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -8,7 +8,9 @@ import { typography } from '@/theme/typography';
 import ScreenHeader from '@/components/ScreenHeader';
 import Card from '@/components/Card';
 import EmergencyButton from '@/components/EmergencyButton';
+import PullToRefreshScrollView from '@/components/PullToRefreshScrollView';
 import type { RootTabParamList } from '@/navigation/types';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Nav = BottomTabNavigationProp<RootTabParamList>;
 
@@ -16,65 +18,72 @@ export default function HomeScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const theme = getTheme(scheme);
   const navigation = useNavigation<Nav>();
+  const { t } = useLanguage();
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]}>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <ScreenHeader title="CyberSaathi" subtitle="Chandigarh cyber safety" />
+      <PullToRefreshScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <ScreenHeader title="CyberRakshak" subtitle={t('home.subtitle')} />
 
         <View style={[styles.hero, { backgroundColor: theme.primary }]}>
-          <View style={styles.heroStripe} />
+          <View style={[styles.heroStripe, { backgroundColor: theme.accent + '40' }]} />
           <View style={styles.heroBadge}>
-            <Text style={[typography.overline, { color: '#fff' }]}>Citizen cyber safety desk</Text>
+            <Text style={[typography.overline, { color: '#fff' }]}>{t('home.badge')}</Text>
           </View>
           <Text style={[typography.h1, { color: '#fff', marginTop: 10 }]}>
-            A safer next step starts here.
+            {t('home.title')}
           </Text>
           <Text style={[typography.body, { color: 'rgba(255,255,255,0.85)', marginTop: 8 }]}>
-            Get guidance, check a suspicious link, or reach the right reporting service.
+            {t('home.intro')}
           </Text>
         </View>
 
         <Text style={[typography.overline, { color: theme.primary, marginTop: 28 }]}> 
-          Your safety tools
+          {t('home.tools')}
         </Text>
         <Text style={[typography.h2, { color: theme.text, marginTop: 4, marginBottom: 12 }]}>
-          How can we help?
+          {t('home.help')}
         </Text>
 
         <View style={styles.grid}>
           <Card
             icon="chatbubble-ellipses-outline"
-            title="Ask CyberSaathi"
-            description="Get cyber-safety guidance"
+            title={t('home.ask.title')}
+            description={t('home.ask.description')}
             onPress={() => navigation.navigate('Chat')}
           />
           <Card
             icon="search-outline"
-            title="Scan a link or file"
-            description="Check a URL or upload an APK"
+            title={t('home.scan.title')}
+            description={t('home.scan.description')}
             onPress={() => navigation.navigate('Scan')}
           />
           <Card
             icon="location-outline"
-            title="Find nearby help"
-            description="Open the map and 1930"
+            title={t('home.helpNearby.title')}
+            description={t('home.helpNearby.description')}
+            onPress={() => navigation.navigate('Help')}
+          />
+          <Card
+            icon="call-outline"
+            title={t('home.contacts.title')}
+            description={t('home.contacts.description')}
             onPress={() => navigation.navigate('Help')}
           />
           <Card
             icon="open-outline"
-            title="Official services"
-            description="Report, check, or block"
+            title={t('home.services.title')}
+            description={t('home.services.description')}
             onPress={() => navigation.navigate('More', { screen: 'Services' })}
           />
           <Card
             icon="book-outline"
-            title="Safety handbooks"
-            description="Read practical cyber-safety guides"
+            title={t('home.handbooks.title')}
+            description={t('home.handbooks.description')}
             onPress={() => navigation.navigate('More', { screen: 'Handbooks' })}
           />
         </View>
-      </ScrollView>
+      </PullToRefreshScrollView>
       <View style={[styles.emergencyDock, { backgroundColor: theme.background }]}> 
         <EmergencyButton />
       </View>
@@ -87,7 +96,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
   hero: { borderRadius: 20, padding: 20, overflow: 'hidden', marginTop: 2 },
-  heroStripe: { position: 'absolute', right: -30, top: -40, width: 130, height: 220, backgroundColor: 'rgba(227,154,36,0.18)', transform: [{ rotate: '22deg' }] },
+  heroStripe: { position: 'absolute', right: -30, top: -40, width: 130, height: 220, transform: [{ rotate: '22deg' }] },
   heroBadge: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.15)',

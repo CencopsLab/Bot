@@ -1,41 +1,41 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, useColorScheme } from 'react-native';
+import React from 'react';
+import { View, Text, Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { getTheme } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import PullToRefreshScrollView from '@/components/PullToRefreshScrollView';
 import ScreenHeader from '@/components/ScreenHeader';
 import Card from '@/components/Card';
 import type { MoreStackParamList } from '@/navigation/types';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Nav = NativeStackNavigationProp<MoreStackParamList>;
-
-const LANGUAGES = ['English', 'Hindi', 'Punjabi'] as const;
 
 export default function MoreScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const theme = getTheme(scheme);
   const navigation = useNavigation<Nav>();
-  const [language, setLanguage] = useState<(typeof LANGUAGES)[number]>('English');
+  const { language, setLanguage, languageOptions, t } = useLanguage();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <ScreenHeader title="More from CyberSaathi" subtitle="Services, guides, and app information" />
+      <PullToRefreshScrollView contentContainerStyle={styles.content}>
+        <ScreenHeader title={t('more.title')} subtitle={t('more.subtitle')} />
 
         <View style={styles.grid}>
           <Card
             icon="open-outline"
-            title="Official services"
-            description="Official reporting and phone services"
+            title={t('more.services.title')}
+            description={t('more.services.description')}
             onPress={() => navigation.navigate('Services')}
           />
           <Card
             icon="book-outline"
-            title="Safety handbooks"
-            description="Offline cyber-safety reading"
+            title={t('more.handbooks.title')}
+            description={t('more.handbooks.description')}
             onPress={() => navigation.navigate('Handbooks')}
           />
         </View>
@@ -44,21 +44,21 @@ export default function MoreScreen() {
           <View style={styles.langHeaderRow}>
             <Ionicons name="globe-outline" size={20} color={theme.primary} />
             <View style={{ marginLeft: 10, flex: 1 }}>
-              <Text style={[typography.bodyBold, { color: theme.text }]}>Language</Text>
+              <Text style={[typography.bodyBold, { color: theme.text }]}>{t('more.language')}</Text>
               <Text style={[typography.caption, { color: theme.textMuted }]}>
-                English is active; Hindi and Punjabi are placeholders.
+                {t('more.languageHint')}
               </Text>
             </View>
           </View>
           <View style={styles.langRow}>
-            {LANGUAGES.map((lang) => {
-              const selected = lang === language;
+            {languageOptions.map((option) => {
+              const selected = option.code === language;
               return (
                 <Pressable
-                  key={lang}
-                  onPress={() => setLanguage(lang)}
+                  key={option.code}
+                  onPress={() => setLanguage(option.code)}
                   accessibilityRole="button"
-                  accessibilityLabel={`Switch language to ${lang}`}
+                  accessibilityLabel={`${t('more.language')}: ${option.label}`}
                   style={[
                     styles.langChip,
                     {
@@ -67,7 +67,7 @@ export default function MoreScreen() {
                     },
                   ]}
                 >
-                  <Text style={{ color: selected ? '#fff' : theme.text, fontWeight: '600' }}>{lang}</Text>
+                  <Text style={{ color: selected ? '#fff' : theme.text, fontWeight: '600' }}>{option.label}</Text>
                 </Pressable>
               );
             })}
@@ -76,11 +76,10 @@ export default function MoreScreen() {
 
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[typography.bodyBold, { color: theme.text }]}>
-            This app is guidance, not a complaint portal
+            {t('more.guidanceTitle')}
           </Text>
           <Text style={[typography.caption, { color: theme.textMuted, marginTop: 6 }]}>
-            Use cybercrime.gov.in or call 1930 to report a financial cybercrime. For urgent danger,
-            contact local emergency services.
+            {t('more.guidance')}
           </Text>
         </View>
 
@@ -90,11 +89,11 @@ export default function MoreScreen() {
         >
           <Ionicons name="lock-closed-outline" size={20} color={theme.primary} />
           <Text style={[typography.bodyBold, { color: theme.text, marginLeft: 10, flex: 1 }]}>
-            Privacy notice
+            {t('more.privacy')}
           </Text>
           <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
         </Pressable>
-      </ScrollView>
+      </PullToRefreshScrollView>
     </SafeAreaView>
   );
 }

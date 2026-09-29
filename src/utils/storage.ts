@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { ChatMessage } from '@/types';
 
-const CHAT_HISTORY_KEY = 'cybersaathi:chat_history';
-const SESSION_ID_KEY = 'cybersaathi:session_id';
+const CHAT_HISTORY_KEY = 'CyberRakshak:chat_history';
+const SESSION_ID_KEY = 'CyberRakshak:session_id';
 
 export async function loadChatHistory(): Promise<ChatMessage[]> {
   try {
@@ -26,6 +26,14 @@ export async function saveChatHistory(messages: ChatMessage[]): Promise<void> {
 export async function clearChatHistory(): Promise<void> {
   try {
     await AsyncStorage.removeItem(CHAT_HISTORY_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+export async function clearChatSession(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(SESSION_ID_KEY);
   } catch {
     // ignore
   }

@@ -17,6 +17,7 @@ import ServicesScreen from '@/screens/ServicesScreen';
 import HandbooksScreen from '@/screens/HandbooksScreen';
 import HandbookDetailScreen from '@/screens/HandbookDetailScreen';
 import PrivacyNoticeScreen from '@/screens/PrivacyNoticeScreen';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const MoreStack = createNativeStackNavigator<MoreStackParamList>();
@@ -44,6 +45,7 @@ const TAB_ICON: Record<keyof RootTabParamList, keyof typeof Ionicons.glyphMap> =
 export default function RootNavigator() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const theme = getTheme(scheme);
+  const { t } = useLanguage();
 
   const navTheme = {
     ...(scheme === 'dark' ? DarkTheme : DefaultTheme),
@@ -72,6 +74,7 @@ export default function RootNavigator() {
             paddingBottom: 8,
           },
           tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+          tabBarLabel: t(`nav.${route.name.toLowerCase()}`),
           tabBarHideOnKeyboard: true,
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons

@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, ScrollView, useColorScheme } from 'react-native';
+import { View, Text, Pressable, StyleSheet, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { getTheme } from '@/theme/colors';
 import { typography } from '@/theme/typography';
+import PullToRefreshScrollView from '@/components/PullToRefreshScrollView';
 import { HANDBOOKS } from '@/data/handbooks';
 import type { MoreStackParamList } from '@/navigation/types';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Nav = NativeStackNavigationProp<MoreStackParamList>;
 
@@ -15,19 +17,20 @@ export default function HandbooksScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const theme = getTheme(scheme);
   const navigation = useNavigation<Nav>();
+  const { t } = useLanguage();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <PullToRefreshScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
-          <Pressable onPress={() => navigation.goBack()} accessibilityLabel="Go back" style={{ marginRight: 12 }}>
+          <Pressable onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} style={{ marginRight: 12 }}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </Pressable>
-          <Text style={[typography.h2, { color: theme.text }]}>Safety handbooks</Text>
+          <Text style={[typography.h2, { color: theme.text }]}>{t('handbooks.title')}</Text>
         </View>
-        <Text style={[styles.sectionLabel, { color: theme.primary }]}>OFFLINE CITIZEN GUIDES</Text>
+        <Text style={[styles.sectionLabel, { color: theme.primary }]}>{t('handbooks.section')}</Text>
         <Text style={[typography.caption, { color: theme.textMuted, marginBottom: 16 }]}> 
-          Read practical cyber-safety guidance and open the official PDF when one is available.
+          {t('handbooks.intro')}
         </Text>
 
         {HANDBOOKS.map((handbook) => (
@@ -40,18 +43,18 @@ export default function HandbooksScreen() {
               <Ionicons name="book-outline" size={21} color={theme.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[typography.bodyBold, { color: theme.text }]}>{handbook.title}</Text>
+              <Text style={[typography.bodyBold, { color: theme.text }]}>{t(`handbook.${handbook.id}.title`)}</Text>
               <Text style={[typography.caption, { color: theme.textMuted, marginTop: 4 }]}>
-                {handbook.summary}
+                {t(`handbook.${handbook.id}.summary`)}
               </Text>
               <Text style={[typography.caption, { color: theme.primary, marginTop: 8, fontWeight: '700' }]}>
-                {handbook.pdfUrl ? 'PDF available · View guide' : 'Offline guide · Read now'}
+                {handbook.pdfUrl ? t('handbooks.pdf') : t('handbooks.offline')}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
           </Pressable>
         ))}
-      </ScrollView>
+      </PullToRefreshScrollView>
     </SafeAreaView>
   );
 }

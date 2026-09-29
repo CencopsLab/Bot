@@ -1,12 +1,12 @@
-# CyberSaathi (Chandigarh Police) — React Native / Expo App
+# CyberRakshak (Chandigarh Police) — React Native / Expo App
 
 A citizen-facing cyber-safety companion app: AI chat assistance, a URL/APK
 safety scanner, a nearby cyber-police-station locator, quick links to
 official reporting portals, and offline CERT-In handbooks.
 
-This project is **frontend-only**. It never calls Groq or VirusTotal
-directly — the Chat and Scanner screens call *your own backend* at the
-two endpoints below, which you build/host separately.
+The repository contains the React Native app and a Node.js backend. The app
+never calls Groq or scan providers directly; Chat and Scanner call the local
+backend in `backend/`.
 
 ```
 POST {API_BASE_URL}/api/chat   { message, session_id } -> { reply }
@@ -28,7 +28,7 @@ Device Manager → start a virtual device → confirm it boots.
 ## 2. Install dependencies
 
 ```bash
-cd CyberSaathi
+cd CyberRakshak
 npm install
 ```
 
@@ -44,12 +44,31 @@ Edit `.env`:
 API_BASE_URL=http://10.0.2.2:8000
 ```
 
+## 4. Start the backend
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
+
+Set `GROQ_API_KEY` and `GROQ_MODEL` in `backend/.env`, then start the API:
+
+```bash
+npm run dev
+```
+
+The chat uses a strict cyber-safety system prompt, a short bounded session
+history, and a low token budget. URL, file, email, SMS, and mobile checks are
+currently preliminary deterministic checks only; full reputation and malware
+analysis can be added behind the same `/api/scan` contract later.
+
 `10.0.2.2` is the special address the Android emulator uses to reach
 `localhost` on your development machine — use it if your backend runs
 locally on your laptop. If your backend is deployed somewhere reachable
 (e.g. a cloud URL), put that URL here instead.
 
-## 4. Run it in the Android emulator
+## 5. Run it in the Android emulator
 
 Start your Android emulator first (via Android Studio's Device Manager, or
 `emulator -avd <your_avd_name>` from the command line), then:
@@ -70,15 +89,16 @@ npx expo start
 
 then press `a` once the QR/menu screen appears, with the emulator running.
 
-## 5. Project structure
+## 6. Project structure
 
 ```
-CyberSaathi/
+CyberRakshak/
 ├── App.tsx                     # App entry: providers + navigation
 ├── app.config.js               # Expo app config (name, icons, permissions, extra.apiBaseUrl)
 ├── package.json
 ├── .env.example                # Copy to .env — API_BASE_URL lives here
 ├── assets/                     # Icon, splash, adaptive icon (placeholder Chandigarh Police emblem)
+├── backend/                    # Node.js chat + preliminary scan API
 └── src/
     ├── api/                    # <- swap backend base URL / headers / auth here only
     │   ├── client.ts           # axios instance + centralized error handling
@@ -95,16 +115,14 @@ CyberSaathi/
     └── utils/                  # URL validation, AsyncStorage helpers
 ```
 
-## 6. Notes on specific features
+## 7. Notes on specific features
 
 - **Emergency call button**: uses `Linking.openURL('tel:1930')`. On the
   Android emulator this opens the emulator's Phone app (it won't actually
   dial anywhere), so it's safe to test.
-- **Locator map**: uses `react-native-maps`, which works in the emulator's
-  Google-backed system image out of the box. Without a
-  `GOOGLE_MAPS_API_KEY` set in `.env`/`app.config.js`, the map still renders
-  for development with a "for development purposes only" watermark — add a
-  key before shipping a release build.
+- **Locator map**: uses OpenStreetMap tiles through Leaflet in a WebView, so it
+  does not require a Google Maps API key. Station direction buttons open the
+  device's Google Maps directions URL when the user requests navigation.
 - **Scanner file picker**: uses `expo-document-picker`, restricted to APKs
   and common file types, with an upload-progress indicator on submit.
 - **Integrated services**: open via `expo-web-browser` (Chrome Custom
@@ -120,7 +138,20 @@ CyberSaathi/
 - **Auth token placeholder**: see the commented-out interceptor in
   `src/api/client.ts` for where to add an API key/bearer token later.
 
-## 7. Building an installable APK later (optional)
+## 8. Deploy the backend to Render
+
+The root `render.yaml` is ready for a Render Blueprint deployment. In Render,
+create a new Blueprint from this repository, then set the secret
+`GROQ_API_KEY` in the backend service environment. Render supplies `PORT`
+automatically and the service health check is `/health`.
+
+After deployment, copy the service URL, for example:
+
+```
+https://CyberRakshak-backend.onrender.com
+```
+
+## 9. Build Android artifacts
 
 This project is set up for local development via Expo. When you're ready
 to produce a real installable `.apk`/`.aab`, the standard path is EAS
@@ -129,10 +160,21 @@ Build:
 ```bash
 npm install -g eas-cli
 eas login
-eas build:configure
-eas build --platform android --profile preview
+eas build --platform android --profile production
 ```
 
-That's outside the scope of "run in my emulator," but the app is already
-structured (bare-compatible, no unsupported native modules) to make that
-step straightforward when you get there.
+On Windows PowerShell, set the build-time variable first:
+
+```powershell
+eas build --platform android --profile production
+```
+
+The `development`, `preview`, and `production` profiles currently point to the
+hosted Render backend. Production creates an Android App Bundle (`.aab`), while
+preview creates an installable APK. Profile `env` values are supplied during
+the build and do not appear in `eas env:list`.
+
+Use `eas build --platform android --profile production` for the Play Store
+bundle, or `eas build --platform android --profile preview` for a directly
+installable APK. Both artifacts contain only the public backend URL; the Groq
+key remains on the backend and must never be added to the mobile app.

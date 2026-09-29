@@ -4,10 +4,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { getTheme } from '@/theme/colors';
 import { typography } from '@/theme/typography';
 import { EMERGENCY_NUMBER } from '@/config/env';
+import { useLanguage } from '@/i18n/LanguageContext';
 
-export default function EmergencyButton({ label = `Emergency \u00b7 Call ${EMERGENCY_NUMBER}` }: { label?: string }) {
+export default function EmergencyButton({ label }: { label?: string }) {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const theme = getTheme(scheme);
+  const { t } = useLanguage();
+  const buttonLabel = label ?? t('common.call', { number: EMERGENCY_NUMBER });
 
   const handlePress = async () => {
     const url = `tel:${EMERGENCY_NUMBER}`;
@@ -15,7 +18,7 @@ export default function EmergencyButton({ label = `Emergency \u00b7 Call ${EMERG
     if (canOpen) {
       Linking.openURL(url);
     } else {
-      Alert.alert('Unable to dial', `Please call ${EMERGENCY_NUMBER} manually from your phone app.`);
+      Alert.alert(t('alert.unableDial'), t('alert.callManually', { number: EMERGENCY_NUMBER }));
     }
   };
 
@@ -23,14 +26,14 @@ export default function EmergencyButton({ label = `Emergency \u00b7 Call ${EMERG
     <Pressable
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={`Call the cybercrime helpline at ${EMERGENCY_NUMBER}`}
+      accessibilityLabel={t('common.call', { number: EMERGENCY_NUMBER })}
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: theme.emergency, opacity: pressed ? 0.9 : 1 },
       ]}
     >
       <Ionicons name="call" size={18} color="#fff" style={{ marginRight: 8 }} />
-      <Text style={[typography.bodyBold, { color: '#fff' }]}>{label}</Text>
+      <Text style={[typography.bodyBold, { color: '#fff' }]}>{buttonLabel}</Text>
     </Pressable>
   );
 }
