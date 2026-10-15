@@ -20,6 +20,7 @@ function createGreeting(language: Language): ChatMessage {
   role: 'bot',
   text: greeting,
   timestamp: Date.now(),
+  language,
   };
 }
 
@@ -28,6 +29,7 @@ type ChatHistoryContextValue = {
   sessionId: string | null;
   ready: boolean;
   addMessage: (message: ChatMessage) => void;
+  updateMessage: (id: string, text: string, language: 'en' | 'hi' | 'pa') => void;
   resetHistory: () => Promise<void>;
 };
 
@@ -69,6 +71,12 @@ export function ChatHistoryProvider({ children }: { children: React.ReactNode })
     setMessages((prev) => [...prev, message]);
   }, []);
 
+  const updateMessage = useCallback((id: string, text: string, language: 'en' | 'hi' | 'pa') => {
+    setMessages((previous) => previous.map((message) =>
+      message.id === id ? { ...message, text, language } : message
+    ));
+  }, []);
+
   const resetHistory = useCallback(async () => {
     await clearChatHistory();
     await clearChatSession();
@@ -78,8 +86,8 @@ export function ChatHistoryProvider({ children }: { children: React.ReactNode })
   }, [language]);
 
   const value = useMemo(
-    () => ({ messages, sessionId, ready, addMessage, resetHistory }),
-    [messages, sessionId, ready, addMessage, resetHistory]
+    () => ({ messages, sessionId, ready, addMessage, updateMessage, resetHistory }),
+    [messages, sessionId, ready, addMessage, updateMessage, resetHistory]
   );
 
   return <ChatHistoryContext.Provider value={value}>{children}</ChatHistoryContext.Provider>;

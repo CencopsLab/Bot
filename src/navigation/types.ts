@@ -4,7 +4,6 @@ export type MoreStackParamList = {
   MoreHome: undefined;
   Services: undefined;
   Handbooks: undefined;
-  HandbookDetail: { id: string };
   PrivacyNotice: undefined;
 };
 
@@ -14,4 +13,9 @@ export type RootTabParamList = {
   Scan: undefined;
   Help: undefined;
   More: NavigatorScreenParams<MoreStackParamList>;
+};
+
+export type RootStackParamList = {
+  MainTabs: undefined;
+  Quiz: undefined;
 };

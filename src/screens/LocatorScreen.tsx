@@ -117,7 +117,7 @@ export default function LocatorScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <PullToRefreshScrollView onRefresh={requestContacts} contentContainerStyle={styles.content}>
         <ScreenHeader title={t('locator.title')} subtitle={t('locator.subtitle')} />
 

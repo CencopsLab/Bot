@@ -3,9 +3,10 @@ export type ChatMessage = {
   role: 'user' | 'bot';
   text: string;
   timestamp: number;
+  language?: 'en' | 'hi' | 'pa';
 };
 
-export type ScanVerdict = 'safe' | 'likely_safe' | 'suspicious' | 'malicious' | 'unknown';
+export type ScanVerdict = 'safe' | 'likely_safe' | 'caution' | 'suspicious' | 'malicious' | 'unknown';
 
 export type ScanCheck = {
   name: string;
@@ -45,6 +46,8 @@ export type ScanResult = {
   detectionRatio?: string;
   threatName?: string;
   permissions?: string[];
+  sensitivePermissions?: string[];
+  riskScore?: number;
   checks?: ScanCheck[];
   headerDetails?: SmsHeaderDetails;
   urlAssessment?: UrlAssessment;
@@ -52,6 +55,22 @@ export type ScanResult = {
   guidance?: ScanGuidance;
   scannedTarget: string;
   scannedAt: number;
+};
+
+export type ScamQuizType = 'link' | 'email' | 'sms' | 'phone' | 'file';
+
+export type ScamQuizQuestion = {
+  id: string;
+  type: ScamQuizType;
+  story: string;
+  question: string;
+  options: string[];
+};
+
+export type ScamQuizAnswer = {
+  correct: boolean;
+  correctAnswer: string;
+  explanation: string;
 };
 
 export type PoliceStation = {
@@ -77,12 +96,4 @@ export type ServiceLink = {
   description: string;
   url: string;
   icon: string;
-};
-
-export type Handbook = {
-  id: string;
-  title: string;
-  summary: string;
-  content: string;
-  pdfUrl?: string;
 };

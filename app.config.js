@@ -9,18 +9,20 @@ module.exports = {
   icon: './assets/icon2.png',
   userInterfaceStyle: 'automatic',
   splash: {
-    image: './assets/splash.png',
+    image: './assets/splash21.png',
     resizeMode: 'contain',
-    backgroundColor: '#145C63',
+    backgroundColor: '#000000',
   },
   assetBundlePatterns: ['**/*'],
   android: {
     package: 'in.gov.chdpolice.CyberRakshak',
+    usesCleartextTraffic: true,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon2.png',
       backgroundColor: '#145C63',
     },
     permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
+    softwareKeyboardLayoutMode: 'resize',
   },
   ios: {
     supportsTablet: false,
@@ -30,7 +32,17 @@ module.exports = {
     eas: {
       projectId: '1ada7567-46b9-4307-9d22-be177881de40',
     },
-    apiBaseUrl: process.env.API_BASE_URL || process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:8000',
+    apiBaseUrl: process.env.API_BASE_URL || process.env.EXPO_PUBLIC_API_BASE_URL || 'http://192.168.137.1:8000',
   },
-  plugins: [],
+  plugins: [
+    [
+      'expo-splash-screen',
+      {
+        image: './assets/splash21.png',
+        imageWidth: 220,
+        resizeMode: 'contain',
+        backgroundColor: '#000000',
+      },
+    ],
+  ],
 };

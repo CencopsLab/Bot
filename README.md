@@ -11,6 +11,8 @@ backend in `backend/`.
 ```
 POST {API_BASE_URL}/api/chat   { message, session_id } -> { reply }
 POST {API_BASE_URL}/api/scan   JSON { url }  OR  multipart file upload
+GET  {API_BASE_URL}/api/quiz?type=link|email|sms|phone|file
+POST {API_BASE_URL}/api/quiz/answer  { type, questionId, answerIndex }
 ```
 
 ## 1. Prerequisites
@@ -59,14 +61,26 @@ npm run dev
 ```
 
 The chat uses a strict cyber-safety system prompt, a short bounded session
-history, and a low token budget. URL, file, email, SMS, and mobile checks are
-currently preliminary deterministic checks only; full reputation and malware
-analysis can be added behind the same `/api/scan` contract later.
+history, and a low token budget. URL, email, SMS-header, mobile-number, and
+file checks have different limits; the Scanner shows a mode-specific
+disclaimer before submission and in each result. The scam-story quiz serves
+ten random questions from a 100-question inventory for each of five scam
+topics in English, Hindi, or Punjabi. Answer checks and explanations are
+localized; correct answers are checked by the backend. The optional best score
+is saved only on the device.
 
 `10.0.2.2` is the special address the Android emulator uses to reach
 `localhost` on your development machine — use it if your backend runs
 locally on your laptop. If your backend is deployed somewhere reachable
 (e.g. a cloud URL), put that URL here instead.
+
+For a physical phone or a demo on a different Wi-Fi/LAN, open **More** in the
+app and expand **Backend connection** near the bottom. Enter the laptop's
+current LAN address and port (for example, `http://192.168.1.20:8000`), then
+tap **Save and test**. The choice is saved on that device and applies to all
+backend features without rebuilding the app; `API_BASE_URL` remains the
+default for a fresh install. Keep the phone and laptop on the same network,
+and allow inbound connections to the backend port through the laptop firewall.
 
 ## 5. Run it in the Android emulator
 
@@ -92,6 +106,23 @@ then press `a` once the QR/menu screen appears, with the emulator running.
 ## 6. Project structure
 
 ```
+
+## Handbook PDFs
+
+Add bundled handbook PDFs to the matching language folder. Name each file with
+the handbook ID used in `src/data/handbooks.ts`:
+
+```text
+assets/handbooks/en/phishing.pdf
+assets/handbooks/hi/phishing.pdf
+assets/handbooks/pa/phishing.pdf
+```
+
+The supported IDs are `phishing`, `sim-swap`, `social-engineering`, and
+`safe-apps`. Files are discovered automatically; PDFs not added for a selected
+language show as unavailable. Preview opens the Android PDF viewer, and
+Download copies the PDF to the app's documents directory and opens the share
+sheet so it can be saved elsewhere.
 CyberRakshak/
 ├── App.tsx                     # App entry: providers + navigation
 ├── app.config.js               # Expo app config (name, icons, permissions, extra.apiBaseUrl)

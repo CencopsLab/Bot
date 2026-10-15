@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Pressable, StyleSheet, useColorScheme } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, useColorScheme, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,6 +11,8 @@ import ScreenHeader from '@/components/ScreenHeader';
 import Card from '@/components/Card';
 import type { MoreStackParamList } from '@/navigation/types';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { apiClient, toApiError } from '@/api/client';
+import { getApiBaseUrl, normalizeApiBaseUrl, saveApiBaseUrl } from '@/config/apiBaseUrl';
 
 type Nav = NativeStackNavigationProp<MoreStackParamList>;
 
@@ -19,9 +21,64 @@ export default function MoreScreen() {
   const theme = getTheme(scheme);
   const navigation = useNavigation<Nav>();
   const { language, setLanguage, languageOptions, t } = useLanguage();
+  const [backendExpanded, setBackendExpanded] = useState(false);
+  const [backendUrl, setBackendUrl] = useState('');
+  const [backendSaving, setBackendSaving] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<{ message: string; connected: boolean | null } | null>(null);
+
+  useEffect(() => {
+    if (!backendExpanded) return;
+    let active = true;
+    getApiBaseUrl()
+      .then((url) => {
+        if (active) setBackendUrl(url);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setBackendStatus({
+            message: error instanceof Error ? error.message : t('more.backendUnavailable'),
+            connected: false,
+          });
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [backendExpanded, t]);
+
+  const saveAndTestBackend = async () => {
+    const normalized = normalizeApiBaseUrl(backendUrl);
+    if (!normalized) {
+      setBackendStatus({ message: t('more.backendInvalid'), connected: false });
+      return;
+    }
+
+    setBackendSaving(true);
+    setBackendStatus(null);
+    let addressSaved = false;
+    try {
+      const savedUrl = await saveApiBaseUrl(normalized);
+      addressSaved = true;
+      setBackendUrl(savedUrl);
+      await apiClient.get('/health', { timeout: 15000 });
+      setBackendStatus({ message: t('more.backendConnected'), connected: true });
+    } catch (error) {
+      const detail = addressSaved
+        ? toApiError(error).message
+        : error instanceof Error ? error.message : t('more.backendUnavailable');
+      setBackendStatus({
+        message: addressSaved
+          ? `${t('more.backendSaved')} ${t('more.backendUnreachable')} ${detail}`
+          : detail,
+        connected: false,
+      });
+    } finally {
+      setBackendSaving(false);
+    }
+  };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <PullToRefreshScrollView contentContainerStyle={styles.content}>
         <ScreenHeader title={t('more.title')} subtitle={t('more.subtitle')} />
 
@@ -83,6 +140,68 @@ export default function MoreScreen() {
           </Text>
         </View>
 
+        <View style={[styles.backendCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Pressable
+            onPress={() => setBackendExpanded((expanded) => !expanded)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: backendExpanded }}
+            style={styles.backendToggle}
+          >
+            <Ionicons name="settings-outline" size={17} color={theme.textMuted} />
+            <Text style={[typography.caption, { color: theme.textMuted, marginLeft: 8, flex: 1 }]}>
+              {t('more.backendTitle')}
+            </Text>
+            <Ionicons
+              name={backendExpanded ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color={theme.textMuted}
+            />
+          </Pressable>
+          {backendExpanded && (
+            <View style={styles.backendForm}>
+              <Text style={[typography.caption, { color: theme.textMuted }]}>
+                {t('more.backendHint')}
+              </Text>
+              <TextInput
+                value={backendUrl}
+                onChangeText={setBackendUrl}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+                placeholder={t('more.backendPlaceholder')}
+                placeholderTextColor={theme.textMuted}
+                accessibilityLabel={t('more.backendTitle')}
+                style={[
+                  styles.backendInput,
+                  { color: theme.text, backgroundColor: theme.background, borderColor: theme.border },
+                ]}
+              />
+              <Pressable
+                onPress={() => void saveAndTestBackend()}
+                disabled={backendSaving}
+                accessibilityRole="button"
+                style={[styles.backendSaveButton, { backgroundColor: theme.primary, opacity: backendSaving ? 0.65 : 1 }]}
+              >
+                <Text style={styles.backendSaveText}>
+                  {backendSaving ? t('more.backendChecking') : t('more.backendSave')}
+                </Text>
+              </Pressable>
+              {backendStatus && (
+                <Text
+                  accessibilityLiveRegion="polite"
+                  style={[
+                    typography.caption,
+                    styles.backendStatus,
+                    { color: backendStatus.connected ? theme.success : theme.danger },
+                  ]}
+                >
+                  {backendStatus.message}
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
+
         <Pressable
           onPress={() => navigation.navigate('PrivacyNotice')}
           style={[styles.privacyRow, { backgroundColor: theme.surface, borderColor: theme.border }]}
@@ -105,6 +224,13 @@ const styles = StyleSheet.create({
   langHeaderRow: { flexDirection: 'row', alignItems: 'center' },
   langRow: { flexDirection: 'row', gap: 8, marginTop: 14 },
   langChip: { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
+  backendCard: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, marginTop: 8, marginBottom: 12 },
+  backendToggle: { minHeight: 42, flexDirection: 'row', alignItems: 'center' },
+  backendForm: { paddingTop: 4, paddingBottom: 12 },
+  backendInput: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginTop: 10 },
+  backendSaveButton: { alignItems: 'center', borderRadius: 10, paddingVertical: 11, marginTop: 10 },
+  backendSaveText: { color: '#fff', fontWeight: '700' },
+  backendStatus: { marginTop: 9 },
   privacyRow: {
     flexDirection: 'row',
     alignItems: 'center',

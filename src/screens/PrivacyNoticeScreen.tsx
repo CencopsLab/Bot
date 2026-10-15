@@ -15,7 +15,7 @@ export default function PrivacyNoticeScreen() {
   const { t } = useLanguage();
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <PullToRefreshScrollView contentContainerStyle={styles.content}>
         <View style={styles.headerRow}>
           <Pressable onPress={() => navigation.goBack()} accessibilityLabel={t('common.back')} style={{ marginRight: 12 }}>

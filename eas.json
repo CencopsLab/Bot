@@ -14,7 +14,7 @@
 		},
 		"preview": {
 			"env": {
-				"API_BASE_URL": "https://backend-zuyl.onrender.com"
+				"API_BASE_URL": "http://192.168.137.1:8000"
 			},
 			"distribution": "internal",
 			"android": {

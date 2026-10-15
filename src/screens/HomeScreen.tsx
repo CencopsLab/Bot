@@ -8,6 +8,7 @@ import { typography } from '@/theme/typography';
 import ScreenHeader from '@/components/ScreenHeader';
 import Card from '@/components/Card';
 import EmergencyButton from '@/components/EmergencyButton';
+import QuizWidget from '@/components/QuizWidget';
 import PullToRefreshScrollView from '@/components/PullToRefreshScrollView';
 import type { RootTabParamList } from '@/navigation/types';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -21,7 +22,7 @@ export default function HomeScreen() {
   const { t } = useLanguage();
 
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: theme.background }]}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.screen, { backgroundColor: theme.background }]}>
       <PullToRefreshScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <ScreenHeader title="CyberRakshak" subtitle={t('home.subtitle')} />
 
@@ -37,6 +38,8 @@ export default function HomeScreen() {
             {t('home.intro')}
           </Text>
         </View>
+
+        <QuizWidget />
 
         <Text style={[typography.overline, { color: theme.primary, marginTop: 28 }]}> 
           {t('home.tools')}
@@ -74,17 +77,17 @@ export default function HomeScreen() {
             icon="open-outline"
             title={t('home.services.title')}
             description={t('home.services.description')}
-            onPress={() => navigation.navigate('More', { screen: 'Services' })}
+            onPress={() => navigation.navigate('More', { screen: 'Services', initial: false })}
           />
           <Card
             icon="book-outline"
             title={t('home.handbooks.title')}
             description={t('home.handbooks.description')}
-            onPress={() => navigation.navigate('More', { screen: 'Handbooks' })}
+            onPress={() => navigation.navigate('More', { screen: 'Handbooks', initial: false })}
           />
         </View>
       </PullToRefreshScrollView>
-      <View style={[styles.emergencyDock, { backgroundColor: theme.background }]}> 
+      <View pointerEvents="box-none" style={styles.emergencyDock}>
         <EmergencyButton />
       </View>
     </SafeAreaView>
@@ -94,7 +97,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 24 },
+  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 112 },
   hero: { borderRadius: 20, padding: 20, overflow: 'hidden', marginTop: 2 },
   heroStripe: { position: 'absolute', right: -30, top: -40, width: 130, height: 220, transform: [{ rotate: '22deg' }] },
   heroBadge: {
@@ -105,5 +108,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  emergencyDock: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 14 },
+  emergencyDock: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 12,
+    zIndex: 10,
+    elevation: 10,
+  },
 });

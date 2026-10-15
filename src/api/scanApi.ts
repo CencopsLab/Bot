@@ -56,7 +56,7 @@ export async function scanFile(
 function normalizeScanResult(data: any, target: string): ScanResult {
   const verdictRaw = String(data?.verdict ?? data?.status ?? 'unknown').toLowerCase();
   const verdict =
-    verdictRaw === 'safe' || verdictRaw === 'likely_safe' || verdictRaw === 'suspicious' || verdictRaw === 'malicious'
+    verdictRaw === 'safe' || verdictRaw === 'likely_safe' || verdictRaw === 'caution' || verdictRaw === 'suspicious' || verdictRaw === 'malicious'
       ? verdictRaw
       : 'unknown';
 
@@ -66,6 +66,10 @@ function normalizeScanResult(data: any, target: string): ScanResult {
     detectionRatio: data?.detection_ratio ?? data?.detectionRatio,
     threatName: data?.threat_name ?? data?.threatName,
     permissions: Array.isArray(data?.permissions) ? data.permissions : undefined,
+    sensitivePermissions: Array.isArray(data?.sensitivePermissions) ? data.sensitivePermissions : undefined,
+    riskScore: Number.isInteger(data?.riskScore) && data.riskScore >= 0 && data.riskScore <= 100
+      ? data.riskScore
+      : undefined,
     checks: Array.isArray(data?.checks) ? data.checks : undefined,
     headerDetails: data?.headerDetails,
     urlAssessment: normalizeUrlAssessment(data?.urlAssessment),

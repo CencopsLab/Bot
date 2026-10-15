@@ -58,20 +58,25 @@ export type ThemeColors = {
 };
 
 export function getTheme(scheme: 'light' | 'dark'): ThemeColors {
-  const isDark = scheme === 'dark';
   return {
     primary: palette.navy,
     primaryDark: palette.navyDark,
     accent: palette.amber,
     emergency: palette.emergencyRed,
-    background: isDark ? palette.bgDark : palette.bgLight,
-    surface: isDark ? palette.surfaceDark : palette.surfaceLight,
-    text: isDark ? palette.textDark : palette.textLight,
-    textMuted: isDark ? palette.textMutedDark : palette.textMutedLight,
-    border: isDark ? palette.borderDark : palette.borderLight,
+
+    // Force light theme
+    background: palette.bgLight,
+    surface: palette.surfaceLight,
+    text: palette.textLight,
+    textMuted: palette.textMutedLight,
+    border: palette.borderLight,
+
     success: palette.success,
     warning: palette.warning,
     danger: palette.danger,
-    card: isDark ? palette.surfaceDark : palette.surfaceLight,
+
+    card: palette.surfaceLight,
+
+
   };
 }

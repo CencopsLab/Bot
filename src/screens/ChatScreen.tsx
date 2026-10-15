@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   View,
@@ -19,7 +19,7 @@ import Disclaimer from '@/components/Disclaimer';
 import ChatBubble, { TypingIndicator } from '@/components/ChatBubble';
 import AppRefreshControl from '@/components/AppRefreshControl';
 import { useChatHistory } from '@/context/ChatHistoryContext';
-import { sendChatMessage } from '@/api/chatApi';
+import { sendChatMessage, translateChatMessage } from '@/api/chatApi';
 import { ApiError } from '@/api/client';
 import type { ChatMessage } from '@/types';
 import { useLanguage } from '@/i18n/LanguageContext';
@@ -27,12 +27,36 @@ import { useLanguage } from '@/i18n/LanguageContext';
 export default function ChatScreen() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const theme = getTheme(scheme);
-  const { messages, sessionId, addMessage, resetHistory } = useChatHistory();
+  const { messages, sessionId, addMessage, updateMessage, resetHistory } = useChatHistory();
   const { language, t } = useLanguage();
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<FlatList<ChatMessage>>(null);
+  const translationLocks = useRef(new Map<string, typeof language>());
+  const previousAppLanguage = useRef(language);
+
+  const translateAssistantMessage = useCallback(async (message: ChatMessage, targetLanguage: typeof language) => {
+    if (message.role !== 'bot' || message.language === targetLanguage || translationLocks.current.get(message.id) === targetLanguage) return;
+    translationLocks.current.set(message.id, targetLanguage);
+    try {
+      const translated = await translateChatMessage(message.text, targetLanguage);
+      if (translationLocks.current.get(message.id) === targetLanguage) {
+        updateMessage(message.id, translated, targetLanguage);
+      }
+    } catch {
+      // Keep the existing reply if translation is temporarily unavailable.
+    } finally {
+      if (translationLocks.current.get(message.id) === targetLanguage) translationLocks.current.delete(message.id);
+    }
+  }, [updateMessage]);
+
+  useEffect(() => {
+    if (previousAppLanguage.current === language) return;
+    previousAppLanguage.current = language;
+    const latestReply = [...messages].reverse().find((message) => message.role === 'bot');
+    if (latestReply) void translateAssistantMessage(latestReply, language);
+  }, [language, messages, translateAssistantMessage]);
 
   const handleSend = useCallback(async () => {
     const text = input.trim();
@@ -40,23 +64,33 @@ export default function ChatScreen() {
 
     setError(null);
     setInput('');
+    setIsSending(true);
+
+    const messageLanguage = /[\u0A00-\u0A7F]/.test(text)
+      ? 'pa'
+      : /[\u0900-\u097F]/.test(text)
+        ? 'hi'
+        : language;
 
     const userMessage: ChatMessage = {
       id: `u_${Date.now()}`,
       role: 'user',
       text,
       timestamp: Date.now(),
+      language: messageLanguage,
     };
     addMessage(userMessage);
-    setIsSending(true);
 
     try {
-      const reply = await sendChatMessage(text, sessionId ?? 'unknown-session', language);
+      const previousReply = [...messages].reverse().find((message) => message.role === 'bot');
+      if (previousReply) await translateAssistantMessage(previousReply, messageLanguage);
+      const reply = await sendChatMessage(text, sessionId ?? 'unknown-session', messageLanguage);
       addMessage({
         id: `b_${Date.now()}`,
         role: 'bot',
         text: reply || t('chat.emptyReply'),
         timestamp: Date.now(),
+        language: messageLanguage,
       });
     } catch (err) {
       const message = err instanceof ApiError ? err.message : t('chat.genericError');
@@ -65,7 +99,7 @@ export default function ChatScreen() {
       setIsSending(false);
       requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
     }
-  }, [input, isSending, sessionId, addMessage, language, t]);
+  }, [input, isSending, sessionId, messages, addMessage, language, t, translateAssistantMessage]);
 
   const handleClearChat = useCallback(() => {
     if (isSending) return;
@@ -85,11 +119,12 @@ export default function ChatScreen() {
   }, [isSending, resetHistory, t]);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
+        // behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={80}
+        keyboardVerticalOffset={0}
       >
         <View style={styles.headerPad}>
           <ScreenHeader

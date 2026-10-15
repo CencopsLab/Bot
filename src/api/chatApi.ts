@@ -19,3 +19,12 @@ export async function sendChatMessage(message: string, sessionId: string, langua
     throw toApiError(error);
   }
 }
+
+export async function translateChatMessage(text: string, language: 'en' | 'hi' | 'pa'): Promise<string> {
+  try {
+    const { data } = await apiClient.post<{ translation: string }>('/api/chat/translate', { text, language });
+    return data.translation;
+  } catch (error) {
+    throw toApiError(error);
+  }
+}

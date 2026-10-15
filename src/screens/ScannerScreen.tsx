@@ -17,6 +17,7 @@ import { typography } from '@/theme/typography';
 import ScreenHeader from '@/components/ScreenHeader';
 import PullToRefreshScrollView from '@/components/PullToRefreshScrollView';
 import ResultCard from '@/components/ResultCard';
+import Disclaimer from '@/components/Disclaimer';
 import { isLikelyValidUrl, normalizeUrl } from '@/utils/validators';
 import { scanUrl, scanFile, scanText, type TextScanType } from '@/api/scanApi';
 import { ApiError } from '@/api/client';
@@ -115,7 +116,14 @@ export default function ScannerScreen() {
       );
       setResult(res);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : t('chat.genericError'));
+      if (err instanceof ApiError && err.rateLimit?.scope === 'apk_upload') {
+        setError(t('scanner.apkRateLimited', {
+          limit: err.rateLimit.limit,
+          minutes: Math.max(1, Math.ceil(err.rateLimit.windowMs / 60000)),
+        }));
+      } else {
+        setError(err instanceof ApiError ? err.message : t('chat.genericError'));
+      }
     } finally {
       setIsScanning(false);
     }
@@ -148,7 +156,7 @@ export default function ScannerScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: theme.background }}>
       <PullToRefreshScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <ScreenHeader title={t('scanner.title')} subtitle={t('scanner.subtitle')} />
 
@@ -156,7 +164,7 @@ export default function ScannerScreen() {
           <View style={[styles.trustIcon, { backgroundColor: theme.primary }]}>
             <Ionicons name="shield-checkmark" size={16} color="#fff" />
           </View>
-          <Text style={[typography.caption, { color: theme.textMuted, flex: 1 }]}> 
+          <Text style={[typography.caption, { color: theme.textMuted, flex: 1 }]}>
             {t('scanner.notice')}
           </Text>
         </View>
@@ -193,6 +201,7 @@ export default function ScannerScreen() {
           </ScrollView>
           <View style={[styles.scanPanel, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.panelAccent} />
+            {/* <Disclaimer text={t(`scanner.disclaimer.${tab}`)} /> */}
             {tab === 'url' ? (
           <View>
             <Text style={[typography.bodyBold, { color: theme.text, marginTop: 4 }]}>{t('scanner.webAddress')}</Text>
@@ -304,7 +313,7 @@ export default function ScannerScreen() {
                 />
               </>
             )}
-            <Text style={[typography.caption, { color: theme.textMuted, marginTop: 6 }]}> 
+            <Text style={[typography.caption, { color: theme.textMuted, marginTop: 6 }]}>
               {t(tab === 'sms' ? 'scanner.smsPreliminary' : 'scanner.preliminary')}
             </Text>
             <Pressable
